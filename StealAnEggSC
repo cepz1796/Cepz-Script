@@ -1,0 +1,536 @@
+--[[ CEPZxHUB new | Steal An Egg | DIRECT BUILD ]]
+-- Langsung paste ke Delta. Tidak perlu upload ke mana-mana.
+
+if _G.__SAE_DIRECT then return end
+_G.__SAE_DIRECT = true
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
+local VU = game:GetService("VirtualUser")
+
+local LP = Players.LocalPlayer
+local CAM = workspace.CurrentCamera
+
+-- GUI parent
+local pg = LP:WaitForChild("PlayerGui", 10)
+
+local sg = Instance.new("ScreenGui")
+sg.Name = "CEPZ_SAE"
+sg.ResetOnSpawn = false
+sg.DisplayOrder = 99999
+sg.IgnoreGuiInset = true
+sg.Parent = pg
+
+-- Config
+local C = {
+    autoSteal = false,
+    antiGuard = false,
+    autoTreadmill = false,
+    autoRare = false,
+    autoReturn = true,
+    speed = 100,
+    flySpeed = 120,
+    basePos = nil,
+    ch = nil, hm = nil, hp = nil,
+    fl = false, fv = nil, fg = nil
+}
+
+-- ========== TOMBOL ⚡ ==========
+local tb = Instance.new("TextButton")
+tb.Size = UDim2.new(0, 60, 0, 60)
+tb.Position = UDim2.new(0.5, -30, 0.5, -30)
+tb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+tb.BorderSizePixel = 0
+tb.Text = "⚡"
+tb.TextSize = 30
+tb.Font = Enum.Font.GothamBold
+tb.TextColor3 = Color3.fromRGB(20, 20, 25)
+tb.AutoButtonColor = false
+tb.Active = true
+tb.Draggable = true
+tb.Parent = sg
+
+local tbc = Instance.new("UICorner", tb)
+tbc.CornerRadius = UDim.new(0, 15)
+
+local tbs = Instance.new("UIStroke", tb)
+tbs.Color = Color3.fromRGB(76, 175, 132)
+tbs.Thickness = 3
+
+-- ========== MAIN FRAME ==========
+local mf = Instance.new("Frame")
+mf.Size = UDim2.new(0, 290, 0, 460)
+mf.Position = UDim2.new(0.5, -145, 0.5, -230)
+mf.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+mf.BorderSizePixel = 0
+mf.Visible = false
+mf.Active = true
+mf.Draggable = true
+mf.Parent = sg
+
+local mfc = Instance.new("UICorner", mf)
+mfc.CornerRadius = UDim.new(0, 16)
+
+local mfs = Instance.new("UIStroke", mf)
+mfs.Color = Color3.fromRGB(76, 175, 132)
+mfs.Thickness = 2
+
+-- Header
+local hd = Instance.new("TextLabel", mf)
+hd.Size = UDim2.new(1, 0, 0, 48)
+hd.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+hd.BorderSizePixel = 0
+hd.Text = "⚡ CEPZxHUB | Steal An Egg"
+hd.TextColor3 = Color3.fromRGB(255, 255, 255)
+hd.TextSize = 14
+hd.Font = Enum.Font.GothamBold
+
+local hdc = Instance.new("UICorner", hd)
+hdc.CornerRadius = UDim.new(0, 16)
+
+-- Close
+local cb = Instance.new("TextButton", mf)
+cb.Size = UDim2.new(0, 32, 0, 32)
+cb.Position = UDim2.new(1, -40, 0, 8)
+cb.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+cb.BorderSizePixel = 0
+cb.Text = "✕"
+cb.TextColor3 = Color3.fromRGB(255, 255, 255)
+cb.TextSize = 16
+cb.Font = Enum.Font.GothamBold
+
+local cbc = Instance.new("UICorner", cb)
+cbc.CornerRadius = UDim.new(0, 8)
+
+-- Toggle maker
+local function mkt(name, icon, y, fn)
+    local b = Instance.new("TextButton", mf)
+    b.Size = UDim2.new(1, -30, 0, 44)
+    b.Position = UDim2.new(0, 15, 0, y)
+    b.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+    b.BorderSizePixel = 0
+    b.Text = icon .. "  " .. name .. "  •  OFF"
+    b.TextColor3 = Color3.fromRGB(190, 190, 200)
+    b.TextSize = 12
+    b.Font = Enum.Font.GothamSemibold
+    b.TextXAlignment = Enum.TextXAlignment.Left
+    b.Parent = mf
+
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
+
+    local s = Instance.new("UIStroke", b)
+    s.Color = Color3.fromRGB(60, 60, 75)
+    s.Thickness = 1
+
+    local st = false
+    b.MouseButton1Click:Connect(function()
+        st = not st
+        b.Text = icon .. "  " .. name .. "  •  " .. (st and "ON" or "OFF")
+        b.BackgroundColor3 = st and Color3.fromRGB(35, 90, 65) or Color3.fromRGB(40, 40, 52)
+        b.TextColor3 = st and Color3.fromRGB(180, 255, 210) or Color3.fromRGB(190, 190, 200)
+        s.Color = st and Color3.fromRGB(76, 175, 132) or Color3.fromRGB(60, 60, 75)
+        pcall(fn, st)
+    end)
+end
+
+local freezeGuards, unfreezeGuards
+
+mkt("AUTO STEAL", "🎯", 58, function(s) C.autoSteal = s end)
+mkt("ANTI GUARD", "🛡️", 106, function(s)
+    C.antiGuard = s
+    if freezeGuards then
+        if s then freezeGuards() else unfreezeGuards() end
+    end
+end)
+mkt("AUTO TREADMILL", "🏃", 154, function(s) C.autoTreadmill = s end)
+mkt("AUTO RARE EGG", "✨", 202, function(s) C.autoRare = s end)
+mkt("AUTO RETURN", "🏠", 250, function(s) C.autoReturn = s end)
+
+-- Speed label
+local sl = Instance.new("TextLabel", mf)
+sl.Size = UDim2.new(1, -30, 0, 22)
+sl.Position = UDim2.new(0, 15, 0, 305)
+sl.BackgroundTransparency = 1
+sl.Text = "⚡ SPEED : " .. C.speed
+sl.TextColor3 = Color3.fromRGB(200, 200, 210)
+sl.TextSize = 13
+sl.Font = Enum.Font.GothamSemibold
+sl.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Slider
+local sbf = Instance.new("Frame", mf)
+sbf.Size = UDim2.new(1, -30, 0, 12)
+sbf.Position = UDim2.new(0, 15, 0, 335)
+sbf.BackgroundColor3 = Color3.fromRGB(55, 55, 68)
+sbf.BorderSizePixel = 0
+
+Instance.new("UICorner", sbf).CornerRadius = UDim.new(1, 0)
+
+local sfil = Instance.new("Frame", sbf)
+sfil.Size = UDim2.new(0, 0, 1, 0)
+sfil.BackgroundColor3 = Color3.fromRGB(76, 175, 132)
+sfil.BorderSizePixel = 0
+
+Instance.new("UICorner", sfil).CornerRadius = UDim.new(1, 0)
+
+local kn = Instance.new("TextButton", sbf)
+kn.Size = UDim2.new(0, 22, 0, 22)
+kn.Position = UDim2.new(0, -11, 0.5, -11)
+kn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+kn.BorderSizePixel = 0
+kn.Text = ""
+
+Instance.new("UICorner", kn).CornerRadius = UDim.new(1, 0)
+
+local drg = false
+local function upd(i)
+    local p = math.clamp((i.Position.X - sbf.AbsolutePosition.X) / sbf.AbsoluteSize.X, 0, 1)
+    local v = math.floor(100 + 900 * p)
+    C.speed = v
+    sl.Text = "⚡ SPEED : " .. v
+    sfil.Size = UDim2.new(p, 0, 1, 0)
+    kn.Position = UDim2.new(p, -11, 0.5, -11)
+    if C.hm then C.hm.WalkSpeed = v end
+end
+
+kn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        drg = true
+    end
+end)
+UIS.InputChanged:Connect(function(i)
+    if drg and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+        upd(i)
+    end
+end)
+UIS.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+        drg = false
+    end
+end)
+
+-- Footer
+local ft = Instance.new("TextLabel", mf)
+ft.Size = UDim2.new(1, 0, 0, 28)
+ft.Position = UDim2.new(0, 0, 1, -28)
+ft.BackgroundTransparency = 1
+ft.Text = "by CEPZxHUB new"
+ft.TextColor3 = Color3.fromRGB(90, 90, 105)
+ft.TextSize = 11
+ft.Font = Enum.Font.Gotham
+
+tb.MouseButton1Click:Connect(function() mf.Visible = not mf.Visible end)
+cb.MouseButton1Click:Connect(function() mf.Visible = false end)
+
+-- ========== CHARACTER ==========
+task.spawn(function()
+    local function initChar(c)
+        C.ch = c
+        C.hm = c:WaitForChild("Humanoid", 10)
+        C.hp = c:WaitForChild("HumanoidRootPart", 10)
+        if C.hm then C.hm.WalkSpeed = C.speed end
+    end
+    if LP.Character then initChar(LP.Character) end
+    LP.CharacterAdded:Connect(initChar)
+end)
+
+-- ========== ANTI GUARD ==========
+local GKW = {"guard","guardian","penjaga","enemy","monster","boss","hunter","chaser","seeker","protector","watcher","keeper","sentinel","police","cop"}
+
+local function isG(m)
+    if not m or not m:IsA("Model") then return false end
+    local n = m.Name:lower()
+    for _, k in ipairs(GKW) do if n:find(k) then return true end end
+    if m:FindFirstChildOfClass("Humanoid") and m ~= C.ch then
+        if not Players:GetPlayerFromCharacter(m) then
+            if m:GetAttribute("IsGuard") then return true end
+        end
+    end
+    return false
+end
+
+local function frz(m)
+    local h = m:FindFirstChildOfClass("Humanoid")
+    if h then
+        h.WalkSpeed = 0
+        h.JumpPower = 0
+        h.JumpHeight = 0
+        h.AutoRotate = false
+        h.PlatformStand = true
+        pcall(function()
+            h:ChangeState(Enum.HumanoidStateType.Physics)
+        end)
+    end
+    local hp = m:FindFirstChild("HumanoidRootPart") or m.PrimaryPart
+    if hp and not hp:FindFirstChild("_c1") then
+        local bv = Instance.new("BodyVelocity", hp)
+        bv.Name = "_c1"
+        bv.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+        bv.Velocity = Vector3.zero
+
+        local bg = Instance.new("BodyGyro", hp)
+        bg.Name = "_c2"
+        bg.MaxTorque = Vector3.new(1e6, 1e6, 1e6)
+        bg.P = 100000
+        bg.D = 1000
+        bg.CFrame = hp.CFrame
+
+        local bp = Instance.new("BodyPosition", hp)
+        bp.Name = "_c3"
+        bp.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+        bp.Position = hp.Position
+        bp.P = 100000
+        bp.D = 1000
+    end
+    for _, p in pairs(m:GetDescendants()) do
+        if p:IsA("BasePart") then
+            p.CanCollide = false
+            p.Anchored = true
+        elseif p:IsA("Script") or p:IsA("LocalScript") then
+            pcall(function() p.Disabled = true end)
+        end
+    end
+    m:SetAttribute("_cF", true)
+end
+
+freezeGuards = function()
+    for _, o in pairs(workspace:GetDescendants()) do
+        if o:IsA("Model") and isG(o) and not o:GetAttribute("_cF") then
+            pcall(frz, o)
+        end
+    end
+end
+
+unfreezeGuards = function()
+    for _, o in pairs(workspace:GetDescendants()) do
+        if o:IsA("Model") and o:GetAttribute("_cF") then
+            local h = o:FindFirstChildOfClass("Humanoid")
+            if h then
+                h.WalkSpeed = 16
+                h.JumpPower = 50
+                h.PlatformStand = false
+                h.AutoRotate = true
+            end
+            local hp = o:FindFirstChild("HumanoidRootPart") or o.PrimaryPart
+            if hp then
+                for _, n in ipairs({"_c1","_c2","_c3"}) do
+                    local f = hp:FindFirstChild(n)
+                    if f then f:Destroy() end
+                end
+            end
+            for _, p in pairs(o:GetDescendants()) do
+                if p:IsA("BasePart") then p.Anchored = false
+                elseif p:IsA("Script") or p:IsA("LocalScript") then
+                    pcall(function() p.Disabled = false end)
+                end
+            end
+            o:SetAttribute("_cF", nil)
+        end
+    end
+end
+
+task.spawn(function()
+    while task.wait(0.3) do
+        if C.antiGuard then pcall(freezeGuards) end
+    end
+end)
+
+-- ========== FLY ==========
+local function startFly()
+    if C.fl then return end
+    local c = C.ch
+    if not c or not c:FindFirstChild("HumanoidRootPart") then return end
+    local hp = c.HumanoidRootPart
+
+    C.fv = Instance.new("BodyVelocity", hp)
+    C.fv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    C.fv.Velocity = Vector3.zero
+
+    C.fg = Instance.new("BodyGyro", hp)
+    C.fg.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    C.fg.P = 1000
+    C.fg.D = 50
+
+    C.fl = true
+    task.spawn(function()
+        while C.fl do
+            task.wait()
+            local md = Vector3.zero
+            if UIS:IsKeyDown(Enum.KeyCode.W) then md = md + CAM.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.S) then md = md - CAM.CFrame.LookVector end
+            if UIS:IsKeyDown(Enum.KeyCode.A) then md = md - CAM.CFrame.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.D) then md = md + CAM.CFrame.RightVector end
+            if UIS:IsKeyDown(Enum.KeyCode.Space) then md = md + Vector3.new(0, 1, 0) end
+            if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then md = md - Vector3.new(0, 1, 0) end
+            if md.Magnitude > 0 then md = md.Unit * C.flySpeed end
+            if C.fv then C.fv.Velocity = md end
+            if C.fg then C.fg.CFrame = CAM.CFrame end
+        end
+    end)
+end
+
+local function stopFly()
+    C.fl = false
+    if C.fv then C.fv:Destroy(); C.fv = nil end
+    if C.fg then C.fg:Destroy(); C.fg = nil end
+end
+
+-- ========== REMOTE ==========
+local rcache = nil
+local lastScan = 0
+
+local function scanR()
+    if rcache then return rcache end
+    if tick() - lastScan < 5 then return nil end
+    lastScan = tick()
+    local l = {}
+    for _, o in pairs(RS:GetDescendants()) do
+        if o:IsA("RemoteEvent") or o:IsA("RemoteFunction") then
+            table.insert(l, o)
+        end
+    end
+    rcache = l
+    return l
+end
+
+local function findR(kw)
+    local l = scanR()
+    if not l then return nil end
+    for _, o in ipairs(l) do
+        local n = o.Name:lower()
+        for _, k in ipairs(kw) do
+            if n:find(k) then return o end
+        end
+    end
+    return nil
+end
+
+local lastFire = 0
+local function safeFire(r, ...)
+    if not r then return end
+    local now = tick()
+    if now - lastFire < 0.3 + math.random() * 0.3 then return end
+    lastFire = now
+    pcall(function()
+        if r:IsA("RemoteEvent") then r:FireServer(...)
+        elseif r:IsA("RemoteFunction") then r:InvokeServer(...) end
+    end)
+end
+
+-- ========== RARE ==========
+local RKW = {"secret","eternal","divine","legendary","mythic","cosmic","exclusive","limited","event"}
+
+local function isRare(e)
+    local n = e.Name:lower()
+    for _, k in ipairs(RKW) do
+        if n:find(k) then return true end
+    end
+    return false
+end
+
+local function findEgg(rareOnly)
+    local best, dist = nil, math.huge
+    local c = C.ch
+    if not c or not c:FindFirstChild("HumanoidRootPart") then return nil end
+    local hp = c.HumanoidRootPart
+
+    for _, o in pairs(workspace:GetDescendants()) do
+        if (o:IsA("BasePart") or o:IsA("Model")) and o.Name:lower():find("egg") then
+            if rareOnly and not isRare(o) then continue end
+            local p
+            if o:IsA("BasePart") then p = o.Position
+            elseif o:IsA("Model") and o.PrimaryPart then p = o.PrimaryPart.Position
+            else continue end
+            local d = (hp.Position - p).Magnitude
+            if d < dist then
+                dist = d
+                best = o
+            end
+        end
+    end
+    return best
+end
+
+task.spawn(function()
+    task.wait(3)
+    if C.hp then C.basePos = C.hp.Position end
+end)
+
+-- ========== MAIN LOOP ==========
+task.spawn(function()
+    local tc = 0
+    while task.wait(0.15) do
+        tc = tc + 1
+        local c = C.ch
+        if not c or not c.Parent then continue end
+        local hp, hm = C.hp, C.hm
+        if not hp or not hm then continue end
+
+        if math.abs(hm.WalkSpeed - C.speed) > 0.5 then
+            hm.WalkSpeed = C.speed
+        end
+
+        if C.autoTreadmill and tc % 3 == 0 then
+            local tr = findR({"treadmill","train","run"})
+            if tr then safeFire(tr) end
+        end
+
+        if C.autoSteal and tc % 2 == 0 then
+            local egg = findEgg(false)
+            if egg then
+                local ep
+                if egg:IsA("BasePart") then ep = egg.Position
+                elseif egg:IsA("Model") and egg.PrimaryPart then ep = egg.PrimaryPart.Position end
+                if ep then
+                    local dd = (hp.Position - ep).Magnitude
+                    if dd > 8 then
+                        hm:MoveTo(ep)
+                        if dd > 250 then hp.CFrame = CFrame.new(ep + Vector3.new(0, 5, 0)) end
+                    else
+                        local sr = findR({"steal","grab","take","egg","pick"})
+                        if sr then safeFire(sr, egg) end
+                        if C.autoReturn and C.basePos then
+                            task.wait(0.25)
+                            hp.CFrame = CFrame.new(C.basePos + Vector3.new(0, 5, 0))
+                        end
+                    end
+                end
+            end
+        end
+
+        if C.autoRare and tc % 2 == 1 then
+            local re = findEgg(true)
+            if re then
+                local ep
+                if re:IsA("BasePart") then ep = re.Position
+                elseif re:IsA("Model") and re.PrimaryPart then ep = re.PrimaryPart.Position end
+                if ep then
+                    local dd = (hp.Position - ep).Magnitude
+                    if dd > 10 then
+                        if not C.fl then startFly() end
+                        if C.fv then C.fv.Velocity = (ep - hp.Position).Unit * C.flySpeed end
+                    else
+                        stopFly()
+                        local sr = findR({"steal","grab","take","egg","pick"})
+                        if sr then safeFire(sr, re) end
+                        if C.autoReturn and C.basePos then
+                            task.wait(0.25)
+                            hp.CFrame = CFrame.new(C.basePos + Vector3.new(0, 5, 0))
+                        end
+                    end
+                end
+            elseif C.fl then
+                stopFly()
+            end
+        end
+    end
+end)
+
+-- ========== ANTI AFK ==========
+LP.Idled:Connect(function()
+    VU:CaptureController()
+    VU:ClickButton2(Vector2.new(0, 0))
+end)
+
+print("[CEPZxHUB] Steal An Egg loaded. Klik tombol ⚡ di tengah layar.")
